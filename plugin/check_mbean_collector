@@ -1,0 +1,175 @@
+#! /usr/bin/perl -w
+#
+# check_mbean_collector
+#
+# Copyright 2007/2008 by Tobias Frech
+# based on check_rpc by Truongchinh Nguyen, Karl DeBisschop and Subhendu Ghosh
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# This script opens a TCP connection to a given host and port. It assumes 
+# that a JBoss-Collector-MBean is listening on that port and sends a request
+# in the following format:
+#    mbean-name attribute-name warning-condition critical-condition\n
+# The result is parsed for the prefix OK, WARNING or CRITICAL and the return
+# code of this script is set accrodingly. The remainder of the result is returned
+# as is.
+
+use strict;
+# You may need to adjust this path to your local Nagios installation
+use lib "/usr/local/nagios/libexec";
+use utils qw($TIMEOUT %ERRORS &print_revision &support);
+use vars qw($PROGNAME);
+
+my ($opt_V,$opt_h,$opt_p,$opt_H,$opt_m,$opt_a,$opt_w,$opt_c);
+my (@hosts,$host);
+
+$opt_V = $opt_h = $opt_p = $opt_H = $opt_m = $opt_a ='';
+
+$PROGNAME = "check_mbean_collector";
+sub print_help ();
+sub print_usage ();
+
+
+use IO::Socket;
+
+use Getopt::Long;
+Getopt::Long::Configure('bundling');
+GetOptions(
+	"V"   => \$opt_V,   "version"    => \$opt_V,
+	"h"   => \$opt_h,   "help"       => \$opt_h,
+	"p=i" => \$opt_p,   "port=i"     => \$opt_p,
+ 	"H=s" => \$opt_H,   "hostname=s" => \$opt_H,
+ 	"m=s" => \$opt_m,   "mbean=s"    => \$opt_m,
+ 	"a=s" => \$opt_a,   "attribute=s"=> \$opt_a,
+ 	"w=s" => \$opt_w,   "warning=s"  => \$opt_w,
+ 	"c=s" => \$opt_c,   "critical=s" => \$opt_c
+);
+
+
+# -h means display verbose help screen
+if ($opt_h) { print_help(); exit $ERRORS{'OK'}; }
+
+# -V means display version number
+if ($opt_V) { 
+	print_revision($PROGNAME,'$Revision: 1.3 $ '); 
+	exit $ERRORS{'OK'}; 
+}
+
+# -H means host name
+unless ($opt_H) { print_usage(); exit $ERRORS{'UNKNOWN'}; }
+@hosts = split(/\,/, $opt_H);
+
+foreach $host (@hosts) {
+	if (! utils::is_hostname($host)){
+		print "$host is not a valid host name\n";
+		print_usage();
+		exit $ERRORS{"UNKNOWN"};
+	}
+}
+
+unless ($opt_p) { print_usage(); exit $ERRORS{'UNKNOWN'}; }
+unless ($opt_m) { print_usage(); exit $ERRORS{'UNKNOWN'}; }
+unless ($opt_a) { print_usage(); exit $ERRORS{'UNKNOWN'}; }
+unless ($opt_w) { print_usage(); exit $ERRORS{'UNKNOWN'}; }
+unless ($opt_c) { print_usage(); exit $ERRORS{'UNKNOWN'}; }
+
+# Just in case of problems, let's not hang Nagios
+$SIG{'ALRM'} = sub {
+        print ("ERROR: No response from server (alarm)\n");
+        exit $ERRORS{'UNKNOWN'};
+};
+alarm($TIMEOUT);
+
+# in the case of a singleton mbean check cycle through the hosts
+foreach $host (@hosts) {
+	my $sock = new IO::Socket::INET (
+		PeerAddr => $host,
+		PeerPort => $opt_p,
+		Proto => 'tcp',
+	);
+	if (!$sock) {
+		print ("ERROR: could not create socket");	
+		exit $ERRORS{'UNKNOWN'};
+	}
+	
+	# if we are looking for a singleton mbean prefix the mbean name with a question mark
+	if ($#hosts > 0) {
+		print $sock "?";
+	}
+	print $sock "$opt_m $opt_a $opt_w $opt_c\n";
+	my $answer = <$sock>;
+	close($sock);
+
+	if ($answer =~ /NOTFOUND(.*)/ ) {
+		next;
+	}
+	if ($answer =~ /OK (.*)/ ) {
+		print $1;
+		exit $ERRORS{"OK"};
+	}
+	if ($answer =~ /WARNING (.*)/ ) {
+		print $1;
+		exit $ERRORS{"WARNING"};
+	}
+	if ($answer =~ /CRITICAL (.*)/ ) {
+		print $1;
+		exit $ERRORS{"CRITICAL"};
+	}
+	print $answer;
+	exit $ERRORS{'UNKNOWN'};
+
+}
+
+print "singleton mbean $opt_m not found";
+exit $ERRORS{'UNKNOWN'};
+
+sub print_help() {
+	print_revision($PROGNAME,'$Revision: 1.3 $ ');
+	print "Copyright (c) 2002 Karl DeBisschop/Truongchinh Nguyen/Subhendu Ghosh\n";
+	print "Copyright (c) 2007/2008 Tobias Frech\n";
+	print "\n";
+	print "Retrieve some MBean attribute value from a JBoss server through the collector MBean:\n";
+	print "  $PROGNAME -H host -p port -m mbean_name -a attribute_name -w warning_level -c critical_level\n";
+	print "\n";
+	print_usage();
+	print "\n";
+	print "  <host>           The server running JBoss.\n";
+	print "                   Giving a comma separated list of hosts switches to a check for a singleton in a cluster.\n";
+	print "  <port>           The port the deployed collector MBean is listening to\n";
+	print "  <mbean_name>     The JMX name of the MBean that includes the attribute, e.g. jboss.system:type=ServerInfo\n";
+	print "                   Use the \${some.env} notation to refer to a JVM system property on the server.\n";
+	print "                   In Nagios config files this must be escaped like this: \$\$\\\\{some.env}\n";
+	print "  <attribute_name> The name of the MBean attribute to retrieve, e.g. ActiveThreadCount\n";
+	print "                   For attributes which are collections the number of entries can be checked by\n"; 
+	print "                   appending [] to the attribute name.\n";
+	print "                   Prefix the attribute name with a * to get the difference between two calls (delta).\n"; 
+	print "                   \${some.env} can be used (see mbean_name).\n";
+	print "  <warning_level>  The level as a number from which on the WARNING status should be set\n";
+	print "  <critical_level> The level as a number from which on the CRITICAL status should be set\n";
+	print "                   If you are checking an attribute that is not a Number the specified text will raise the\n";
+	print "                   specific level if it can be found in the textual representation of the attribute\n";
+	print "                   For specifying ranges or 'less than' triggers use the Nagios range notation\n";
+	print "                   (see http://nagiosplug.sourceforge.net/developer-guidelines.html#THRESHOLDFORMAT)\n";
+	print "\n";
+	support();
+}
+
+sub print_usage () {
+	print "Usage: \n";
+	print " $PROGNAME -H host[,host,..] -p port -m mbean-name -a attribute-name -w warning-level -c critical-level\n";
+	print " $PROGNAME [-h | --help]\n";
+	print " $PROGNAME [-V | --version]\n";
+}

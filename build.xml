@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     20.11.2009 14:13:15                                                        
+
+     jboss2nagios    
+     Integrate JBoss into Nagios monitoring through a small Collector MBean 
+     and a perl based Nagios plugin.
+                        
+     Tobias Frech                                                                
+     ====================================================================== -->
+<project name="project" default="package">
+	<property name="mbeansrc.dir" location="mbean/src"/>
+	<path id="compile.path">
+		<fileset dir="mbean/lib/">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+
+
+	<target name="package" depends="collector-jar" description="create the distribution">
+		<zip destfile="dist/jboss2nagios.zip" >
+			<zipfileset dir="." prefix="jboss2nagios/">
+				<include name="mbean/collector.sar" />
+				<include name="plugin/check_mbean_collector" />
+				<include name="docs/**" />
+			</zipfileset>
+		</zip>
+	</target>
+
+	<target name="collector-jar" depends="compile">
+		<jar destfile="mbean/collector.sar" basedir="mbean/bin" manifest="${mbeansrc.dir}/META-INF/MANIFEST.MF"/>
+	</target>
+
+	<target name="compile">
+		<javac srcdir="mbean/src" destdir="mbean/bin" classpathref="compile.path" debug="on" target="1.5" />
+		<copy todir="mbean/bin">
+			<fileset dir="mbean/src" excludes="**/*.java" />
+		</copy>
+		<manifest file="mbean/src/META-INF/MANIFEST.MF">
+			<attribute name="Manifest-Version" value="1.0"/>
+			<attribute name="Dependencies" value="com.icare.jboss2nagios"/>
+		</manifest>
+	</target>
+
+	<target name="clean">
+		<delete includeEmptyDirs="true">
+			<fileset dir="mbean/bin/" includes="**/*" defaultexcludes="no" />
+		</delete>
+	</target>
+
+
+</project>

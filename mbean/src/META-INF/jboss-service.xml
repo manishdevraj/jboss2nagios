@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server xmlns="urn:jboss:service:7.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="urn:jboss:service:7.0 jboss-service_7_0.xsd">
+
+    <mbean code="jboss.monitoring.MyServerMonitor" name="service.server.monitor:service=MyMonitor">
+         <attribute name="frequency">5000</attribute>
+         <attribute name="bindAddress">0.0.0.0</attribute>
+		 <attribute name="port">5566</attribute>
+    </mbean>
+    
+    <mbean code="jboss.monitoring.memory.HeapMonitor" name="service.server.monitor:service=HeapMonitor">	
+    	 <attribute name="frequency">5000</attribute>
+    </mbean>
+</server>

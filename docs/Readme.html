@@ -1,0 +1,66 @@
+<html>
+<head>
+<title>JBoss Nagios Integration: monitor any JMX attribute</title>
+<STYLE type="text/css">
+ body { font-family: sans-serif; 
+        max-width:1000px; 
+        margin-left:auto;
+        margin-right:auto;
+        background: #ffffff }
+ h1 { background: #ccccff }
+ h2 { background: #ccccff }
+</STYLE>
+<head>
+<body>
+<h1>jboss2nagios</h1>
+Integrate JBoss into Nagios monitoring through a small Collector MBean and a perl based Nagios plugin. Lets you read and monitor JMX values from JBoss servers very efficiently. On the Nagios server no JDK or JBoss installation is needed.
+<p/>
+<img src="provided.png" alt="schematic overview"/>
+
+<h2>Installation:</h2>
+<ol>
+<li>Copy the collector.sar (from the <tt>mbean/</tt> directory) to your JBoss deploy directory. Port 5566 is then open for the plugin to access it.</li>
+<li>Copy the plugin check_mbean_collector (from the <tt>plugin/</tt> directory) to the Nagios plugin directory on the Nagios server.</li>
+<li>Edit your Nagios config to use the check_mbean_collector to monitor any attributes of any MBean.</li>
+</ol>
+<p>You might check that the plugin and the MBean is working properly by doing a test run on the Nagios server:</p>
+<p><tt>
+./check_mbean_collector -H jbossserver -p 5566 -m jboss.system:type=ServerInfo -a ActiveThreadCount -w 200 -c 400
+</tt></p>
+Please note that you need the nagios-plugins package installed and of course replace "jbossserver" above with you server name.
+
+<h2>Plugin usage:</h2>
+<pre>
+Retrieve some MBean attribute value from a JBoss server through the collector MBean:
+  check_mbean_collector -H host -p port -m mbean_name -a attribute_name -w warning_level -c critical_level
+ 
+Usage: 
+ check_mbean_collector -H host[,host,..] -p port -m mbean-name -a attribute-name -w warning-level -c critical-level
+ check_mbean_collector [-h | --help]
+ check_mbean_collector [-V | --version]
+ 
+  &lt;host&gt;           The server running JBoss.
+                   Giving a comma separated list of hosts switches to a check for a singleton in a cluster.
+  &lt;port&gt;           The port the deployed collector MBean is listening to
+  &lt;mbean_name&gt;     The JMX name of the MBean that includes the attribute, e.g. jboss.system:type=ServerInfo
+                   Use the ${some.env} notation to refer to a JVM environment variable on the server.
+                   In Nagios config files this must be escaped like this: $$\\{some.env}
+  &lt;attribute_name&gt; The name of the MBean attribute to retrieve, e.g. ActiveThreadCount
+                   Prefix with * to get the difference between two calls (delta). ${...} can be used.
+  &lt;warning_level&gt;  The level as a number from which on the WARNING status should be set
+  &lt;critical_level&gt; The level as a number from which on the CRITICAL status should be set
+</pre>
+<h2>Resources</h2>
+<A href="http://sourceforge.net/apps/trac/jboss2nagios/wiki">Documentation</a> and <a href="http://sourceforge.net/projects/jboss2nagios/files/">download</a>.
+
+<h2>SourceForge Project</h2>
+The project is hosted on SoruceForge and has it's own <a href="https://sourceforge.net/projects/jboss2nagios/">project homepage</a>.
+
+<h2>Professional Support</h2>
+We provide <a href="http://frech.info">professional support and consulting services for Java related administration topics</a> including this plugin.
+
+<p/>
+<p/>
+<small>Nagios is a registered trademark owned by Nagios Enterprises. JBoss is a trademark of Red Hat, Inc., registered in the U.S. and other countries. Java is a trademark of Sun Microsystems, Inc, in the U.S. and other countries.</small>
+</body>
+</html>
