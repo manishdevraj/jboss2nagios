@@ -9,9 +9,9 @@ Integrate JBoss into Nagios monitoring through a small Collector MBean and a per
 
 Installation:
 
-    Copy the collector.sar (from the mbean/ directory) to your JBoss deploy directory. Port 5566 is then open for the plugin to access it.
-    Copy the plugin check_mbean_collector (from the plugin/ directory) to the Nagios plugin directory on the Nagios server.
-    Edit your Nagios config to use the check_mbean_collector to monitor any attributes of any MBean.
+1. Copy the collector.sar (from the mbean/ directory) to your JBoss deploy directory. Port 5566 is then open for the plugin to access it.
+2. Copy the plugin check_mbean_collector (from the plugin/ directory) to the Nagios plugin directory on the Nagios server.
+3. Edit your Nagios config to use the check_mbean_collector to monitor any attributes of any MBean.
 
 You might check that the plugin and the MBean is working properly by doing a test run on the Nagios server:
 
@@ -40,6 +40,6 @@ Usage:
 
 SourceForge Project
 
-The project is hosted on SoruceForge and has it's own project homepage. 
+The project is hosted on SoruceForge and has it's own project homepage https://sourceforge.net/projects/jboss2nagios/
 
 Reference : http://sourceforge.net/projects/jboss2nagios
