@@ -39,7 +39,7 @@
 		</copy>
 		<manifest file="mbean/src/META-INF/MANIFEST.MF">
 			<attribute name="Manifest-Version" value="1.0"/>
-			<attribute name="Dependencies" value="com.icare.jboss2nagios"/>
+			<attribute name="Dependencies" value="com.jboss.jboss2nagios"/>
 		</manifest>
 	</target>
 
