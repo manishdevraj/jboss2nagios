@@ -15,6 +15,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeDataSupport;
 
+import jboss.monitoring.util.CPUUsage;
 import jboss.monitoring.util.GenerateHeapDump;
 import jboss.monitoring.util.MXBeanConstants;
 import jboss.monitoring.util.MXBeanReader;
@@ -109,8 +110,13 @@ public class CollectorRequestHandlingThread extends Thread {
 						return;
 					}
 					Object attribute = null;
+					boolean bcheckAttribute = true;
 
-					if (null != attributeName) {
+					if (objectName.toString().equals(MXBeanConstants.OS_OBJ)) {
+						bcheckAttribute = false;
+					}
+
+					if (bcheckAttribute && null != attributeName) {
 						attribute = mbeanServer.getAttribute(objectName,
 								attributeName);
 					}
@@ -133,6 +139,40 @@ public class CollectorRequestHandlingThread extends Thread {
 						}
 						sendResult(out, attributeName, code, attributeName
 								+ " is " + outBuffer.toString(), null);
+					} else if (objectName.toString().equals(
+							MXBeanConstants.MEMORY_OBJ)
+							&& attributeName
+									.equals(MXBeanConstants.NON_HEAP_MEM_ATTRIBUTE)) {
+						outBuffer = MXBeanReader.getHeapMemoryUsage(
+								(CompositeDataSupport) attribute,
+								warningCondition, critialCondition);
+						String code = MXBeanConstants.RESULT_OK;
+						if (outBuffer.toString().contains(
+								MXBeanConstants.RESULT_CRITICAL)) {
+							code = MXBeanConstants.RESULT_CRITICAL;
+						} else if (outBuffer.toString().contains(
+								MXBeanConstants.RESULT_WARNING)) {
+							code = MXBeanConstants.RESULT_WARNING;
+						}
+						sendResult(out, attributeName, code, attributeName
+								+ " is " + outBuffer.toString(), null);
+					} else if (objectName.toString().equals(
+							MXBeanConstants.OS_OBJ)
+							&& attributeName
+									.equals(MXBeanConstants.CPU_ATTRIBUTE)) {
+						outBuffer = CPUUsage.getCpuUsage(warningCondition,
+								critialCondition);
+						String code = MXBeanConstants.RESULT_OK;
+						if (outBuffer.toString().contains(
+								MXBeanConstants.RESULT_CRITICAL)) {
+							code = MXBeanConstants.RESULT_CRITICAL;
+						} else if (outBuffer.toString().contains(
+								MXBeanConstants.RESULT_WARNING)) {
+							code = MXBeanConstants.RESULT_WARNING;
+						}
+						sendResult(out, attributeName, code, attributeName
+								+ " details: " + outBuffer.toString(), null);
+
 					} else if (objectName.toString().equals(
 							MXBeanConstants.HOTSPOT_DIAGNOSTIC)) {
 						String fileName = "HDump" + getProcessId("<PID>") + "-"
