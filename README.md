@@ -6,6 +6,11 @@ Jboss SAR MBean and Perl plug-in for Nagios compatible with Jboss 7.1.1
 Description
 
 Integrate JBoss into Nagios monitoring through a small Collector MBean and a perl based Nagios plugin. Lets you read you and monitor JMX values from JBoss servers very efficiently. On the Nagios server no JDK or JBoss installation is needed.
+It allows you to monitor following 
+
+1. HeapMemoryUsage
+2. Non heap memory usage
+3. CPU usage
 
 Installation:
 
@@ -15,7 +20,7 @@ Installation:
 
 You might check that the plugin and the MBean is working properly by doing a test run on the Nagios server:
 
-./check_mbean_collector -H jbossserver -p 5566 -m jboss.system:type=ServerInfo -a ActiveThreadCount -w 200 -c 400
+./check_mbean_collector -H jbossserver -p 5566 -m java.lang:type=Memory -a HeapMemoryUsage -w 200 -c 400
 Please note that you need the nagios-plugins package installed and of course replace "jbossserver" above with you server name.
 Plugin usage:
 
@@ -27,16 +32,12 @@ Usage:
  check_mbean_collector [-h | --help]
  check_mbean_collector [-V | --version]
  
-  <host>           The server running JBoss.
-                   Giving a comma separated list of hosts switches to a check for a singleton in a cluster.
-  <port>           The port the deployed collector MBean is listening to
-  <mbean_name>     The JMX name of the MBean that includes the attribute, e.g. jboss.system:type=ServerInfo
-                   Use the ${some.env} notation to refer to a JVM environment variable on the server.
-                   In Nagios config files this must be escaped like this: $$\\{some.env}
-  <attribute_name> The name of the MBean attribute to retrieve, e.g. ActiveThreadCount
-                   Prefix with * to get the difference between two calls (delta). ${...} can be used.
-  <warning_level>  The level as a number from which on the WARNING status should be set
-  <critical_level> The level as a number from which on the CRITICAL status should be set
+1. [host] The server running JBoss. Giving a comma separated list of hosts switches to a check for a singleton in a cluster.
+2. [port] The port the deployed collector MBean is listening to
+3. [mbean_name] The JMX name of the MBean that includes the attribute, e.g. ava.lang:type=Memory Use the ${some.env} notation to refer to a JVM environment variable on the server. In Nagios config files this must be escaped like this: $$\\{some.env}
+4. [attribute_name] The name of the MBean attribute to retrieve, e.g. HeapMemoryUsage Prefix with * to get the difference between two calls (delta). ${...} can be used.
+5. [warning_level] The level as a number from which on the WARNING status should be set
+6. [critical_level] The level as a number from which on the CRITICAL status should be set
 
 SourceForge Project
 
