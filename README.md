@@ -11,6 +11,7 @@ It allows you to monitor following
 1. HeapMemoryUsage
 2. Non heap memory usage
 3. CPU usage
+4. Take heap dump
 
 Installation:
 
@@ -20,7 +21,7 @@ Installation:
 
 You might check that the plugin and the MBean is working properly by doing a test run on the Nagios server:
 
-./check_mbean_collector -H jbossserver -p 5566 -m java.lang:type=Memory -a HeapMemoryUsage -w 200 -c 400
+./check_mbean_collector -H jbossserver -p 5566 -m java.lang:type=Memory -a HeapMemoryUsage -w 70 -c 90
 Please note that you need the nagios-plugins package installed and of course replace "jbossserver" above with you server name.
 Plugin usage:
 
@@ -38,6 +39,14 @@ Usage:
 4. [attribute_name] The name of the MBean attribute to retrieve, e.g. HeapMemoryUsage Prefix with * to get the difference between two calls (delta). ${...} can be used.
 5. [warning_level] The level as a number from which on the WARNING status should be set
 6. [critical_level] The level as a number from which on the CRITICAL status should be set
+
+Commands
+# cd /usr/local/nagios/libexec/
+
+1. HeapMemoryUsage : ./check_mbean_collector -H jbossserver -p 5566 -m java.lang:type=Memory -a HeapMemoryUsage -w 70 -c 90
+2. Non heap memory usage : ./check_mbean_collector -H jbossserver -p 5566 -m java.lang:type=Memory -a NonHeapMemoryUsage -w 70 -c 90
+3. CPU usage : ./check_mbean_collector -H jbossserver -p 5566 -m java.lang:type=OperatingSystem -a CPUUsage -w 70 -c 90
+4. Take heap dump : ./heap_util  -H jbossserver -p 5566  -m com.sun.management:type=HotSpotDiagnostic
 
 SourceForge Project
 
