@@ -7,11 +7,9 @@ import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.net.Socket;
 import java.util.Map;
-import java.util.Set;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeDataSupport;
 
@@ -22,6 +20,12 @@ import jboss.monitoring.util.MXBeanReader;
 
 import org.jboss.util.StringPropertyReplacer;
 
+/**
+ * Class that handles request sent to thread
+ * 
+ * @author manish
+ * 
+ */
 public class CollectorRequestHandlingThread extends Thread {
 
 	private static final String SPACE_REGEX = "\\+"; // ein Plus-Zeichen
@@ -50,6 +54,7 @@ public class CollectorRequestHandlingThread extends Thread {
 
 				try {
 					String mbeanName = restoreWhitspaceAndReplaceVariables(params[0]);
+					// check if its heap dump call
 					if (mbeanName.equals(MXBeanConstants.HOTSPOT_DIAGNOSTIC)) {
 						bHeapUtil = true;
 					}
@@ -239,18 +244,6 @@ public class CollectorRequestHandlingThread extends Thread {
 			return strings.length == 1;
 		}
 		return strings.length == 4;
-	}
-
-	private void listAllJBossAS7MBeans(MBeanServer mbeanServer)
-			throws MalformedObjectNameException {
-		System.out.println("\n\t All JBoss AS7 MBean Listing \n\n");
-		ObjectName serviceRef = new ObjectName("*.*:*");
-		if (null != serviceRef) {
-			Set<ObjectName> mbeans = mbeanServer.queryNames(serviceRef, null);
-			for (ObjectName on : mbeans) {
-				System.out.println("\t ObjectName : " + on);
-			}
-		}
 	}
 
 	private static String getProcessId(final String fallback) {

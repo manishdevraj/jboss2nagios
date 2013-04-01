@@ -7,7 +7,24 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
 
+/**
+ * Class to get heap dump This class is useful when Nagios reports problem with
+ * memory we can get heap dump on-demand
+ * 
+ * @author manish
+ * 
+ */
 public class GenerateHeapDump {
+	/**
+	 * Method to generate heap dump
+	 * 
+	 * @param mbeanServer
+	 * @param fileName
+	 * @throws InstanceNotFoundException
+	 * @throws ReflectionException
+	 * @throws MBeanException
+	 * @throws MalformedObjectNameException
+	 */
 	public static void getHeapDump(MBeanServer mbeanServer, String fileName)
 			throws InstanceNotFoundException, ReflectionException,
 			MBeanException, MalformedObjectNameException {
@@ -20,11 +37,11 @@ public class GenerateHeapDump {
 					Boolean.TRUE };
 			String[] signature = new String[] { String.class.getName(),
 					boolean.class.getName() };
-			System.out.println("Generating Dump at "
+			System.out.println(" Generating Dump at "
 					+ System.getProperty("user.home") + fileName);
 			Object result = mbeanServer.invoke(hotDiagMXBean, "dumpHeap",
 					params, signature);
-			System.out.println("nt Heap Dump Generated to " + fileName);
+			System.out.println(" Heap Dump Generated to " + fileName);
 		}
 	}
 }

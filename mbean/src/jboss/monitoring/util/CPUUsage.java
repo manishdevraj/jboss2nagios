@@ -6,6 +6,12 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+/**
+ * Class to manage CPU usage
+ * 
+ * @author manish
+ * 
+ */
 public class CPUUsage {
 	/**
 	 * Get CPU usage based on CPU time between a time difference
