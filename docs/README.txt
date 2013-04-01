@@ -62,4 +62,4 @@ Tips
    Unfortunately this won't work in JBoss 5.x anymore due to an error in JBoss.
  * Suggestions for attributes of MBeans you might want to monitor / graph: http://sourceforge.net/apps/trac/jboss2nagios/wiki/MBeanSuggestions
  * Add your configuration to the list of known working configurations: http://sourceforge.net/apps/trac/jboss2nagios/wiki/VersionMatrix
-
+ 
